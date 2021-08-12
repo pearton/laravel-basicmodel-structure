@@ -1,0 +1,29 @@
+{
+    "name": "lixiao/laravel-basicmodel-structure",
+    "description": "laravel model\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000Eloquent ORM",
+    "type": "library",
+    "keywords": [
+        "laravel",
+        "model",
+        "ORM"
+    ],
+    "authors": [
+        {
+            "name": "lxd",
+            "email": "pearton@126.com"
+        }
+    ],
+    "homepage": "https://justone.top/",
+    "license": "MIT",
+    "require": {
+        "php": ">=7.2",
+        "laravel/framework": "^6.2",
+        "laravel/tinker": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Lixiao\\laravelBasicmodelStructure\\": "src/"
+        }
+    },
+    "minimum-stability": "dev"
+}
