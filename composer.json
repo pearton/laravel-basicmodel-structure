@@ -1,5 +1,5 @@
 {
-    "name": "lixiao/laravel-basicmodel-structure",
+    "name": "pearton_lixiao/laravel-basicmodel-structure",
     "description": "laravel model\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000Eloquent ORM",
     "type": "library",
     "keywords": [
@@ -22,7 +22,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Lixiao\\laravelBasicmodelStructure\\": "src/"
+            "PeartonLixiao\\laravelBasicmodelStructure\\": "src/"
         }
     },
     "minimum-stability": "dev"

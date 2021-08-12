@@ -6,7 +6,7 @@
  * QQ: 790125098
  */
 
-namespace Lixiao\laravelBasicmodelStructure;
+namespace PeartonLixiao\laravelBasicmodelStructure;
 
 use Exception;
 use Illuminate\Support\Facades\Schema;
