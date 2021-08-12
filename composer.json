@@ -1,5 +1,5 @@
 {
-    "name": "pearton_lixiao/laravel-basicmodel-structure",
+    "name": "peartonlixiao/laravel-orm-tool",
     "description": "laravel model\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000Eloquent ORM",
     "type": "library",
     "keywords": [
@@ -22,7 +22,7 @@
     },
     "autoload": {
         "psr-4": {
-            "PeartonLixiao\\laravelBasicmodelStructure\\": "src/"
+            "Peartonlixiao\\LaravelOrmTool\\": "src/"
         }
     },
     "minimum-stability": "dev"
