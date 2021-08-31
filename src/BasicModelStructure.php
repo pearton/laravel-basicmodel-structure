@@ -289,12 +289,12 @@ trait BasicModelStructure
     public function statusUpdate(int $primaryKey):array
     {
         if(!$primaryKey){
-            return ['code'=>456,'infor'=>'数据已被删除'];
+            return ['code'=>456,'msg'=>'数据已被删除'];
         }
         try {
             $info = $this->findOne($primaryKey);
             if(!$info){
-                return ['code'=>404,'infor'=>'数据已被删除'];
+                return ['code'=>404,'msg'=>'数据已被删除'];
             }
             $statusKey = property_exists($this,'statusKey')  ? $this->statusKey : 'status';
             if(!Schema::hasColumn($this->getTable(),$statusKey)){
@@ -307,9 +307,9 @@ trait BasicModelStructure
             $info->$statusKey = $info->$statusKey == self::STATUS_YES ? self::STATUS_NO : self::STATUS_YES;
 
             $info->save();
-            return ['code'=>200,'infor'=>'状态修改成功'];
+            return ['code'=>200,'msg'=>'状态修改成功'];
         }catch (Exception $e){
-            return ['code'=>500,'infor'=>$e->getMessage()];
+            return ['code'=>500,'msg'=>$e->getMessage()];
         }
     }
 
@@ -323,7 +323,7 @@ trait BasicModelStructure
     public function deleteData(int $primaryKey):array
     {
         if(!$primaryKey){
-            return ['code'=>456,'infor'=>'数据已被删除'];
+            return ['code'=>456,'msg'=>'数据已被删除'];
         }
         try {
             $sourceModel = explode('\\',__CLASS__);
@@ -335,15 +335,15 @@ trait BasicModelStructure
                 /** @noinspection PhpUndefinedVariableInspection */
                 $validate = self::$deteleValidate::$validateFunc([self::getPrimaryKey() => $primaryKey],$msg);
                 if($validate !== true){
-                    return ['code'=>456, 'infor'=>$msg];
+                    return ['code'=>456, 'msg'=>$msg];
                 }
             }
             if($this::where(self::getPrimaryKey(),$primaryKey)->delete()){
-                return ['code'=>200, 'infor'=>'删除成功'];
+                return ['code'=>200, 'msg'=>'删除成功'];
             }
-            return ['code' => 456, 'infor' => '网络异常,删除失败'];
+            return ['code' => 456, 'msg' => '网络异常,删除失败'];
         }catch (Exception $e){
-            return ['code'=>500,'infor'=>$e->getMessage()];
+            return ['code'=>500,'msg'=>$e->getMessage()];
         }
     }
 
@@ -363,7 +363,7 @@ trait BasicModelStructure
                 /** @noinspection PhpUndefinedVariableInspection */
                 $validate = $validataObj['validataObj']::create($params,$msg);
                 if($validate !== true){
-                    return ['code'=>456, 'infor'=>$msg];
+                    return ['code'=>456, 'msg'=>$msg];
                 }
             }
             //规避循环调用该方法直接$this未释放导致多次循环仅插入一条数据且频繁更新
@@ -383,10 +383,10 @@ trait BasicModelStructure
                 throw new Exception('网络异常,入库失败');
             }
         }catch (Exception $e){
-            return ['code'=>302,'infor'=>$e->getMessage()];
+            return ['code'=>302,'msg'=>$e->getMessage()];
         }
         $primaryKey = self::getPrimaryKey();
-        return ['code' =>200, 'infor' => $successText,'insertId' => $model->$primaryKey];
+        return ['code' =>200, 'msg' => $successText,'insertId' => $model->$primaryKey];
     }
 
     /**
@@ -404,7 +404,7 @@ trait BasicModelStructure
                 /** @noinspection PhpUndefinedVariableInspection */
                 $validate = $validataObj['validataObj']::update($params,$msg);
                 if($validate !== true){
-                    return ['code'=>456, 'infor'=>$msg];
+                    return ['code'=>456, 'msg'=>$msg];
                 }
             }
             $info = $this->findOne($params[self::getPrimaryKey()]);
@@ -421,9 +421,9 @@ trait BasicModelStructure
                 throw new Exception('网络异常,入库失败');
             }
         }catch (Exception $e){
-            return ['code'=>302,'infor'=>$e->getMessage()];
+            return ['code'=>302,'msg'=>$e->getMessage()];
         }
         $primaryKey = $info->primaryKey;
-        return ['code' =>200, 'infor' => $successText,'updateId' => $info->$primaryKey];
+        return ['code' =>200, 'msg' => $successText,'updateId' => $info->$primaryKey];
     }
 }
