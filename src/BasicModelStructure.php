@@ -19,6 +19,29 @@ use Illuminate\Support\Facades\Schema;
 trait BasicModelStructure
 {
     private static $deteleValidate = "App\Validate\DeleteDataValidate";
+    protected $frontDndStatus = false;
+
+    /**
+     * 作用方法:注册status(可自定义为其他字段|但常量固定名称)的前台检索全局变量
+     * Created by Lxd.
+     * @throws Exception
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        $_that = new self();
+        if($_that->frontDndStatus && request()->segment(1) == 'api'){
+            $statusKey = property_exists($_that,'statusKey')  ? $_that->statusKey : 'status';
+            if(!Schema::hasColumn($_that->getTable(),$statusKey)){
+                throw new Exception("当前Model不存在状态字段{$statusKey},请务开启frontDndStatus为true");
+            }
+            //开启前端status字段显示作用域(前台(api端)仅允许检索出状态(status)为正常的数据)
+            static::addGlobalScope('status',function (Builder $builder){
+                $builder->where('status',self::STATUS_YES);
+            });
+        }
+    }
 
     /**
      * Created by Lxd
