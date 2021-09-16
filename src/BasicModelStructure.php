@@ -147,7 +147,7 @@ trait BasicModelStructure
      * @return mixed
      * @throws Exception
      */
-    public function search(array $params,array $withEl = [],$toArray = false,$obj = false)
+    public function search(array $params,array $withEl = [],$withCount = null,$toArray = false,$obj = false)
     {
         $query = $this;
         if($withEl){
@@ -165,6 +165,9 @@ trait BasicModelStructure
                 //获取所有数据数组集合
                 return $query->get()->toArray();
             }
+        }
+        if($withCount){
+            $query = $query->withCount($withCount);
         }
         //检索条数
         $limit = isset($params['limit']) ? $params['limit'] : 10;
@@ -343,7 +346,7 @@ trait BasicModelStructure
      * @param int $primaryKey
      * @return array
      */
-    public function deleteData(int $primaryKey):array
+    public function deleteData(int $primaryKey,$hintKeyWord = '删除'):array
     {
         if(!$primaryKey){
             return ['code'=>456,'msg'=>'数据已被删除'];
@@ -362,9 +365,9 @@ trait BasicModelStructure
                 }
             }
             if($this::where(self::getPrimaryKey(),$primaryKey)->delete()){
-                return ['code'=>200, 'msg'=>'删除成功'];
+                return ['code'=>200, 'msg'=>"{$hintKeyWord}成功"];
             }
-            return ['code' => 456, 'msg' => '网络异常,删除失败'];
+            return ['code' => 456, 'msg' => "网络异常,{$hintKeyWord}失败"];
         }catch (Exception $e){
             return ['code'=>500,'msg'=>$e->getMessage()];
         }
