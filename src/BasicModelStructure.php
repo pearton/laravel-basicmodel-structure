@@ -49,7 +49,7 @@ trait BasicModelStructure
      */
     protected function fieldRule():array
     {
-        return [];
+        return ['eq' => [],'like' => [],'in' => []];
     }
 
     /**
@@ -90,6 +90,16 @@ trait BasicModelStructure
     public static function getPrimaryKey()
     {
         return (new self())->primaryKey;
+    }
+
+    /**
+     * 作用方法:model表名获取
+     * Created by Lxd.
+     * @return mixed
+     */
+    public static function getTableName()
+    {
+        return (new self())->table;
     }
 
     /**
@@ -140,10 +150,11 @@ trait BasicModelStructure
     /**
      * model检索
      * Created by Lxd
-     * @param array $params
-     * @param array $withEl
-     * @param false $toArray
-     * @param false $obj
+     * @param array $params|检索数组参数
+     * @param array $withEl|with预加载
+     * @param null $withCount|withCount方法
+     * @param false $toArray|数组化
+     * @param false $obj|非数组化(数组化指定所有数据,该参用以说明获取所有数据但不数组化)
      * @return mixed
      * @throws Exception
      */
@@ -278,7 +289,7 @@ trait BasicModelStructure
         }else{
             if(Schema::hasColumn((new self())->getTable(),'sort')){
                 $modelQuery = $modelQuery->orderBy('sort','asc');
-            }else{
+            }elseif(Schema::hasColumn((new self())->getTable(),'id')){
                 $modelQuery = $modelQuery->orderBy('id','desc');
             }
         }
@@ -344,6 +355,7 @@ trait BasicModelStructure
      * 删除验证器定义:sele::$deteleValidate类下,按照Model名字拼接Delete组成方法名
      * Created by Lxd
      * @param int $primaryKey
+     * @param string $hintKeyWord
      * @return array
      */
     public function deleteData(int $primaryKey,$hintKeyWord = '删除'):array
