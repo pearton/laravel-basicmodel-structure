@@ -105,9 +105,9 @@ trait BasicModelStructure
     /**
      * @return mixed
      */
-    public function getSort()
+    public static function getSort(): int
     {
-        return $this->max($this::getPrimaryKey()) + 1;
+        return (new self())->max(self::getPrimaryKey()) + 1;
     }
 
     /**
@@ -115,7 +115,7 @@ trait BasicModelStructure
      * Created by Lxd.
      * @param int $primaryKey
      * @param false $field
-     * @return false
+     * @return mixed
      * @throws Exception
      */
     public function findOne(int $primaryKey,$field = false)
@@ -133,38 +133,49 @@ trait BasicModelStructure
      * 指定条件检索单条数据
      * Created by Lxd
      * @param array $params
-     * @param array $withEl
+     * @param array $ormSearch
      * @param bool $toArray
      * @return mixed
+     * @throws Exception
      */
-    public function findByField(array $params,array $withEl = [],$toArray = false)
+    public static function findByField(array $params,array $ormSearch = [],$toArray = false)
     {
-        $query = $this;
-        if($withEl){
-            $query = $query::with($withEl);
+        $query = (new self());
+
+        try {
+            //orm关联查询
+            $query = self::buildOrmRelation($query,$ormSearch);
+        }catch (Exception $e){
+            throw new Exception("查询orm关系查询异常:{$e->getMessage()}");
         }
-        $re = $this::buildQuery($query,$params)->first();
+
+        $re = self::buildQuery($query,$params)->first();
         return ($toArray && $re) ? $re->toArray() : $re;
     }
 
     /**
      * model检索
      * Created by Lxd
-     * @param array $params|检索数组参数
-     * @param array $withEl|with预加载
-     * @param null $withCount|withCount方法
-     * @param false $toArray|数组化
-     * @param false $obj|非数组化(数组化指定所有数据,该参用以说明获取所有数据但不数组化)
+     * @param array $params |检索数组参数
+     * @param array $ormSearch |laravel Orm关系查询
+     * @param false $toArray |数组化
+     * @param false $obj |非数组化(数组化指定所有数据,该参用以说明获取所有数据但不数组化)
      * @return mixed
      * @throws Exception
      */
-    public function search(array $params,array $withEl = [],$withCount = null,$toArray = false,$obj = false)
+    public function search(array $params,array $ormSearch = [],$toArray = false,$obj = false)
     {
         $query = $this;
-        if($withEl){
-            $query = $query::with($withEl);
-        }
+
         try {
+            //orm关联查询
+            $query = $this::buildOrmRelation($query,$ormSearch);
+        }catch (Exception $e){
+            throw new Exception("查询orm关系查询异常:{$e->getMessage()}");
+        }
+
+        try {
+            //链式查询构建
             $query = $this::buildQuery($query,$params);
         }catch (Exception $e){
             throw new Exception("查询构建异常:{$e->getMessage()}");
@@ -176,9 +187,6 @@ trait BasicModelStructure
                 //获取所有数据数组集合
                 return $query->get()->toArray();
             }
-        }
-        if($withCount){
-            $query = $query->withCount($withCount);
         }
         //检索条数
         $limit = isset($params['limit']) ? $params['limit'] : 10;
@@ -240,6 +248,55 @@ trait BasicModelStructure
             }
         }
         return $where_custom;
+    }
+
+    /**
+     * 作用方法:构建基于laravel Orm的关联关系查询
+     * Created by Lxd.
+     * @param $modelQuery
+     * @param array $ormSearch
+     * @return mixed
+     */
+    private static function buildOrmRelation($modelQuery,$ormSearch = [])
+    {
+        //with关联关系查询
+        if(isset($ormSearch['with'])){
+            $modelQuery = $modelQuery->with($ormSearch['with']);
+        }
+        //withCount关联关系查询
+        if(isset($ormSearch['withCount'])){
+            $modelQuery = $modelQuery->withCount($ormSearch['withCount']);
+        }
+        //has关联关系查询
+        if(isset($ormSearch['has'])){
+            foreach ($ormSearch['has'] as $v){
+                if(isset($v[1]) && isset($v[2])){
+                    $modelQuery = $modelQuery->has($v[0],$v[1],$v[2]);
+                }else{
+                    $modelQuery = $modelQuery->has($v[0]);
+                }
+            }
+        }
+        //whereHas关联关系查询
+        if(isset($ormSearch['whereHas'])){
+            foreach ($ormSearch['whereHas'] as $v){
+                $modelQuery = $modelQuery->whereHas($v[0],$v[1]);
+            }
+        }
+        //doesntHave关联关系查询
+        if(isset($ormSearch['doesntHave'])){
+            foreach ($ormSearch['doesntHave'] as $v){
+                $modelQuery = $modelQuery->doesntHave($v[0]);
+            }
+        }
+        //whereDoesntHave关联关系查询
+        if(isset($ormSearch['whereDoesntHave'])){
+            foreach ($ormSearch['whereDoesntHave'] as $v){
+                $modelQuery = $modelQuery->whereDoesntHave($v[0],$v[1]);
+            }
+        }
+
+        return $modelQuery;
     }
 
     /**
