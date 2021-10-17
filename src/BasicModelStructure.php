@@ -99,7 +99,7 @@ trait BasicModelStructure
      */
     public static function getTableName()
     {
-        return (new self())->table;
+        return (new self())->getTable();
     }
 
     /**
