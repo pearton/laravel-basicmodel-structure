@@ -78,7 +78,7 @@ trait BasicModelStructure
     public function User()
     {
         if(Schema::hasColumn($this->getTable(),'created_user')){
-            return $this->belongsTo('App\Models\User','created_user','id');
+            return $this->belongsTo('App\Models\Frame\User','created_user','id');
         }
         return false;
     }
