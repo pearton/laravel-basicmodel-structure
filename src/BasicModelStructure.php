@@ -472,7 +472,11 @@ trait BasicModelStructure
                 }
             }
             if(Schema::hasColumn($model->getTable(),'created_user')){
-                $model->created_user = getAuth()->id;
+                #该处如需要记录后台创建人,则需要开发者根据自己业务进行修改
+                #自行确定使用的鉴权方式,以获得后台操作人ID
+                if(function_exists('getAuth')){
+                    $model->created_user = isset(getAuth()->id) ? getAuth()->id : 0;
+                }
             }
             if(!$model->save()){
                 throw new Exception('网络异常,入库失败');
