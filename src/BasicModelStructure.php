@@ -8,8 +8,13 @@
 
 namespace Peartonlixiao\LaravelOrmTool;
 
+use App\Models\BaseModel;
+use App\Models\Frame\Permission;
 use Exception;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 /**
  * Model基本方法构造|仅允许Model类实现
@@ -33,7 +38,7 @@ trait BasicModelStructure
         $_that = new self();
         if($_that->frontDndStatus && request()->segment(1) == 'api'){
             $statusKey = property_exists($_that,'statusKey')  ? $_that->statusKey : 'status';
-            if(!Schema::hasColumn($_that->getTable(),$statusKey)){
+            if(!Schema::hasColumn(self::getTableName(),$statusKey)){
                 throw new Exception("当前Model不存在状态字段{$statusKey},请务开启frontDndStatus为true");
             }
             //开启前端status字段显示作用域(前台(api端)仅允许检索出状态(status)为正常的数据)
@@ -77,7 +82,7 @@ trait BasicModelStructure
      */
     public function User()
     {
-        if(Schema::hasColumn($this->getTable(),'created_user')){
+        if(Schema::hasColumn(self::getTableName(),'created_user')){
             return $this->belongsTo('App\Models\Frame\User','created_user','id');
         }
         return false;
@@ -121,7 +126,7 @@ trait BasicModelStructure
     public function findOne(int $primaryKey,$field = false)
     {
         if($field){
-            if(!Schema::hasColumn($this->getTable(),$field)){
+            if(!Schema::hasColumn(self::getTableName(),$field)){
                 throw new Exception("当前数据表未包含字段{$field}");
             }
             return $this->find($primaryKey)->$field ?? false;
@@ -240,7 +245,7 @@ trait BasicModelStructure
                     }
             }
             if($date1 && $date2){
-                if(!Schema::hasColumn($this->getTable(),$field)){
+                if(!Schema::hasColumn(self::getTableName(),$field)){
                     throw new Exception("当前Model不存在字段{$field}");
                 }
                 array_push($where_custom,[$field,'>',$date1]);
@@ -313,7 +318,7 @@ trait BasicModelStructure
             if((!$fundKey || !$v) && $k !== 'lishu'){
                 if(!$fundKey){
                     //没找到声明,默认eq查询
-                    if(Schema::hasColumn((new self())->getTable(),$k) && $v){
+                    if(Schema::hasColumn(self::getTableName(),$k) && $v){
                         $modelQuery = $modelQuery->where($k,$v);
                     }
                 }
@@ -344,11 +349,18 @@ trait BasicModelStructure
                 $modelQuery = $modelQuery->orderBy($v[0],$v[1]);
             }
         }else{
-            if(Schema::hasColumn((new self())->getTable(),'sort')){
+            if(Schema::hasColumn(self::getTableName(),'sort')){
                 $modelQuery = $modelQuery->orderBy('sort','asc');
-            }elseif(Schema::hasColumn((new self())->getTable(),'id')){
+            }elseif(Schema::hasColumn(self::getTableName(),'id')){
                 $modelQuery = $modelQuery->orderBy('id','desc');
             }
+        }
+        /** @noinspection PhpStatementHasEmptyBodyInspection */
+        if(isset($params['select']) && $params['select']){
+            //select字段自行构建
+        }
+        if(isset($params['selectRaw']) && $params['selectRaw']){
+            $modelQuery = $modelQuery->selectRaw($params['selectRaw']);
         }
         return $modelQuery;
     }
@@ -391,7 +403,7 @@ trait BasicModelStructure
                 return ['code'=>404,'msg'=>'数据已被删除'];
             }
             $statusKey = property_exists($this,'statusKey')  ? $this->statusKey : 'status';
-            if(!Schema::hasColumn($this->getTable(),$statusKey)){
+            if(!Schema::hasColumn(self::getTableName(),$statusKey)){
                 throw new Exception("当前Model不存在状态字段{$statusKey}");
             }
             $className = __CLASS__;
@@ -467,11 +479,11 @@ trait BasicModelStructure
                 if($v && !is_string($v) && !is_int($v)){
                     throw new Exception("{$k}字段期望属性错误,非string类型");
                 }
-                if(Schema::hasColumn($model->getTable(),$k)){
+                if(Schema::hasColumn(self::getTableName(),$k)){
                     $model->$k = $v;
                 }
             }
-            if(Schema::hasColumn($model->getTable(),'created_user')){
+            if(Schema::hasColumn(self::getTableName(),'created_user')){
                 #该处如需要记录后台创建人,则需要开发者根据自己业务进行修改
                 #自行确定使用的鉴权方式,以获得后台操作人ID
                 if(function_exists('getAuth')){
@@ -512,7 +524,7 @@ trait BasicModelStructure
                 if($v && !is_string($v) && !is_int($v)){
                     throw new Exception("{$k}字段期望属性错误,非string类型");
                 }
-                if(Schema::hasColumn($this->getTable(),$k)){
+                if(Schema::hasColumn(self::getTableName(),$k)){
                     $info->$k = $v;
                 }
             }
@@ -524,5 +536,138 @@ trait BasicModelStructure
         }
         $primaryKey = $info->primaryKey;
         return ['code' =>200, 'msg' => $successText,'updateId' => $info->$primaryKey];
+    }
+
+    /**
+     * 作用方法:排序修改
+     * Created by Lxd.
+     * @param $params
+     * @param string $successText
+     * @return array
+     */
+    public function updateSort(array $params,string $successText = '更新成功'):array
+    {
+        $params['field'] = $params['field'] ?? 'sort';
+
+        $idKey = self::getPrimaryKey();
+
+        try {
+            if(!isset($params[$idKey])){
+                throw new Exception('未传递表主键');
+            }
+
+            if(!Schema::hasColumn(self::getTableName(),$params['field'])){
+                throw new Exception("当前Model不存在排序字段{$params['field']}");
+            }
+            $rules = [
+                $idKey => ['required','integer',Rule::exists($this::getTableName(),$idKey)],
+                'value' => 'required|max:255',
+                'field' => 'nullable|max:50'
+            ];
+            $customAttributes = [
+                $idKey => '主键',
+                'value' => '排序值',
+                'field' => '字段',
+            ];
+            $validator = Validator::make($params, $rules, [],$customAttributes);
+            if ($validator->fails()) {
+                $msg = $validator->errors()->first();
+                throw new Exception($msg);
+            }
+
+            $updateData = [
+                $params['field']  =>$params['value'],
+                'updated_at'  =>getDateTime()
+            ];
+            $res = DB::table($this::getTableName())->where($idKey,$params[$idKey])->update($updateData);
+            if($res){
+                return ['code' =>200, 'msg' => $successText,'updateId' => $params[$idKey]];
+            }
+            throw new Exception("网络异常,更新失败.");
+        }catch (Exception $e){
+            return ['code'=>456,'msg'=>$e->getMessage()];
+        }
+    }
+
+    /**
+     * 作用方法:字段修改
+     * Created by Lxd.
+     * @param array $params
+     * @param string $successText
+     * @return array
+     */
+    public function updateField(array $params,string $successText = '更新成功'):array
+    {
+        $params['is_unique'] = $params['is_unique'] ?? 'false';
+        $params['can_null'] = $params['can_null'] ?? 'false';
+
+        $params['table'] = self::getTableName();
+        $idKey = self::getPrimaryKey();
+
+        try {
+            if(!isset($params[$idKey])){
+                throw new Exception('未传递表主键');
+            }
+            if(!Schema::hasColumn(self::getTableName(),$params['field'])){
+                throw new Exception("当前Model不存在字段{$params['field']}");
+            }
+
+            $rules = [
+                'value' => 'nullable|max:255',
+                'field' => 'required|max:255',
+                'is_unique' => 'required',
+                'can_null' => 'required'
+            ];
+            if(!Schema::hasColumn($params['table'],'deleted_at')){
+                $rules[$idKey] = ['required','integer',Rule::exists($params['table'],$idKey)];
+            }else{
+                $rules[$idKey] = ['required','integer',Rule::exists($params['table'],$idKey)->where(function ($query){
+                    $query->whereNull('deleted_at');
+                })];
+            }
+            $customAttributes = [
+                'table'=>'数据表',
+                $idKey => '主键',
+                'value' => '值',
+                'field' => '字段',
+                'is_unique' => '是否唯一',
+                'can_null' => '是否可为空'
+            ];
+            $validator = Validator::make($params, $rules, [],$customAttributes);
+            if ($validator->fails()) {
+                $msg = $validator->errors()->first();
+                throw new Exception($msg);
+            }
+            if($params['can_null'] !== 'true' && !$params['value']){
+                throw new Exception('请填写值内容');
+            }
+            if($params['is_unique'] == 'true'){
+                #是否已存在校验
+                if(DB::table($params['table'])->where($idKey,'<>',$params[$idKey])->where($params['field'],$params['value'])->count()){
+                    throw new Exception("当前值:{$params['value']}已存在");
+                }
+            }
+            $updateData = [
+                $params['field']  =>$params['value'],
+                'updated_at'  =>getDateTime()
+            ];
+            $res = DB::table($params['table'])->where($idKey,$params[$idKey])->update($updateData);
+            if($res){
+                switch ($params['table']){
+                    case 'permissions':
+                        #更新权限缓存
+                        (new Permission())->cache();
+                        break;
+                    case 'navigations':
+                        #更新redis
+                        (new BaseModel())->redisOperation(BaseModel::$redisKeyArr['navigation'],'set');
+                        break;
+                }
+                return ['code' =>200, 'msg' => $successText,'updateId' => $params[$idKey]];
+            }
+            throw new Exception("网络异常,更新失败.");
+        }catch (Exception $e){
+            return ['code'=>456,'msg'=>$e->getMessage()];
+        }
     }
 }
