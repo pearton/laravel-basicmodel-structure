@@ -355,9 +355,8 @@ trait BasicModelStructure
                 $modelQuery = $modelQuery->orderBy('id','desc');
             }
         }
-        /** @noinspection PhpStatementHasEmptyBodyInspection */
         if(isset($params['select']) && $params['select']){
-            //select字段自行构建
+            $modelQuery->select($params['select']);
         }
         if(isset($params['selectRaw']) && $params['selectRaw']){
             $modelQuery = $modelQuery->selectRaw($params['selectRaw']);
@@ -476,7 +475,7 @@ trait BasicModelStructure
             //规避循环调用该方法直接$this未释放导致多次循环仅插入一条数据且频繁更新
             $model = new self();
             foreach ($params as $k=>$v){
-                if($v && !is_string($v) && !is_int($v)){
+                if($v && !is_string($v) && !is_int($v) && !is_float($v)){
                     throw new Exception("{$k}字段期望属性错误,非string类型");
                 }
                 if(Schema::hasColumn(self::getTableName(),$k)){
@@ -521,7 +520,7 @@ trait BasicModelStructure
             $info = $this->findOne($params[self::getPrimaryKey()]);
             unset($params[self::getPrimaryKey()]);
             foreach ($params as $k=>$v){
-                if($v && !is_string($v) && !is_int($v)){
+                if($v && !is_string($v) && !is_int($v) && !is_float($v)){
                     throw new Exception("{$k}字段期望属性错误,非string类型");
                 }
                 if(Schema::hasColumn(self::getTableName(),$k)){
