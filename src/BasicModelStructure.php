@@ -344,6 +344,15 @@ trait BasicModelStructure
                 $modelQuery = $modelQuery->whereIn($v[0],$v[1]);
             }
         }
+        if(isset($params['where_raw']) && $params['where_raw']){
+            if(is_array($params['where_raw'])){
+                foreach ($params['where_raw'] as $v){
+                    $modelQuery = $modelQuery->whereRaw($v);
+                }
+            }else {
+                $modelQuery = $modelQuery->whereRaw($params['where_raw']);
+            }
+        }
         if(isset($params['order'])){
             foreach ($params['order'] as $v){
                 $modelQuery = $modelQuery->orderBy($v[0],$v[1]);
