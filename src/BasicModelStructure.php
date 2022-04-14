@@ -317,8 +317,8 @@ trait BasicModelStructure
             $fundKey = (new self())->_getFieldRuleKey($k);
             if((!$fundKey || !$v) && $k !== 'lishu'){
                 if(!$fundKey){
-                    //没找到声明,默认eq查询
-                    if(Schema::hasColumn(self::getTableName(),$k) && $v){
+                    //没找到声明,默认eq查询|值=0也将用于条件检索 所以注意 如无必要,请不要定义value=0的枚举值
+                    if(Schema::hasColumn(self::getTableName(),$k) && ($v || $v == "0")){
                         $modelQuery = $modelQuery->where($k,$v);
                     }
                 }
@@ -359,7 +359,7 @@ trait BasicModelStructure
             }
         }else{
             if(Schema::hasColumn(self::getTableName(),'sort')){
-                $modelQuery = $modelQuery->orderBy('sort','asc');
+                $modelQuery = $modelQuery->orderBy('sort','asc')->orderBy('id','desc');
             }elseif(Schema::hasColumn(self::getTableName(),'id')){
                 $modelQuery = $modelQuery->orderBy('id','desc');
             }
