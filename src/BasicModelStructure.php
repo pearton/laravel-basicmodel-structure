@@ -248,8 +248,8 @@ trait BasicModelStructure
                 if(!Schema::hasColumn(self::getTableName(),$field)){
                     throw new Exception("当前Model不存在字段{$field}");
                 }
-                array_push($where_custom,[$field,'>',$date1]);
-                array_push($where_custom,[$field,'<',$date2]);
+                array_push($where_custom,[$field,'>=',$date1]);
+                array_push($where_custom,[$field,'<=',$date2]);
             }
         }
         return $where_custom;
@@ -525,6 +525,9 @@ trait BasicModelStructure
                 if($validate !== true){
                     return ['code'=>456, 'msg'=>$msg];
                 }
+            }
+            if(!isset($params[self::getPrimaryKey()])){
+                throw new Exception("未传递表主键值");
             }
             $info = $this->findOne($params[self::getPrimaryKey()]);
             unset($params[self::getPrimaryKey()]);
