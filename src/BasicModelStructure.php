@@ -681,4 +681,39 @@ trait BasicModelStructure
             return ['code'=>456,'msg'=>$e->getMessage()];
         }
     }
+
+    public function updateAllBatch(array $multipleData):bool
+    {
+        try {
+            if (empty($multipleData)) {
+                throw new \Exception("数据不能为空");
+            }
+            $tableName = DB::getTablePrefix() . $this->getTable(); // 表名
+            $firstRow  = current($multipleData);
+
+            $updateColumn = array_keys($firstRow);
+            // 默认以id为条件更新，如果没有ID则以第一个字段为条件
+            $referenceColumn = isset($firstRow['id']) ? 'id' : current($updateColumn);
+            unset($updateColumn[0]);
+            // 拼接sql语句
+            $updateSql = "UPDATE " . $tableName . " SET ";
+            foreach ($updateColumn as $uColumn) {
+                $updateSql .= $uColumn . " = CASE ";
+                foreach ($multipleData as $data) {
+                    $updateSql .= "WHEN " . $referenceColumn . " = " . $data[$referenceColumn] . " THEN '" . $data[$uColumn] . "' ";
+                }
+                $updateSql .= "ELSE " . $uColumn . " END, ";
+            }
+
+            // 更新条件，以逗号分隔
+            $whereIn = collect($multipleData)->pluck($referenceColumn)->values()->all();
+            $whereIn = implode(',', $whereIn);
+
+            $updateSql = rtrim($updateSql, ", ") . " WHERE " . $referenceColumn . " IN (" . $whereIn . ")";
+
+            return DB::update(DB::raw($updateSql));
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
 }
