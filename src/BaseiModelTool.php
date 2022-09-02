@@ -29,6 +29,14 @@ class BaseiModelTool
         return self::$instance;
     }
 
+    /**
+     * 作用方法:批量更新-基于表名
+     * @Author Pearton <pearton@126.com>
+     * @Time 2022/9/2 10:04
+     * @param string $tableName
+     * @param array $multipleData
+     * @return bool
+     */
     public function updateAllBatchByTable(string $tableName,array $multipleData):bool
     {
         try {
