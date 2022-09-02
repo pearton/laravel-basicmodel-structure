@@ -682,7 +682,13 @@ trait BasicModelStructure
         }
     }
 
-    public function updateAllBatch(array $multipleData):bool
+    /**
+     * 作用方法:批量更新-基于model实例化
+     * @Author Pearton <pearton@126.com>
+     * @param array $multipleData
+     * @return bool
+     */
+    public function updateAllBatchByModel(array $multipleData):bool
     {
         try {
             if (empty($multipleData)) {
