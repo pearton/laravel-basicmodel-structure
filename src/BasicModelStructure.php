@@ -108,11 +108,24 @@ trait BasicModelStructure
     }
 
     /**
-     * @return mixed
+     * 作用方法:获取排序值_根据最大ID+1
+     * @Author Pearton <pearton@126.com>
+     * @return int
      */
-    public static function getSort(): int
+    public static function getSortIdMax(): int
     {
         return (new self())->max(self::getPrimaryKey()) + 1;
+    }
+
+    /**
+     * 作用方法:作用方法:获取排序值_根据最大排序+1
+     * @Author Pearton <pearton@126.com>
+     * @param $field
+     * @return int
+     */
+    public static function getSort($field = 'sort'): int
+    {
+        return (new self())->max($field) + 1;
     }
 
     /**
@@ -359,7 +372,7 @@ trait BasicModelStructure
             }
         }else{
             if(Schema::hasColumn(self::getTableName(),'sort')){
-                $modelQuery = $modelQuery->orderBy('sort','asc')->orderBy('id','desc');
+                $modelQuery = $modelQuery->orderBy('sort','desc')->orderBy('id','desc');
             }elseif(Schema::hasColumn(self::getTableName(),'id')){
                 $modelQuery = $modelQuery->orderBy('id','desc');
             }
@@ -497,6 +510,10 @@ trait BasicModelStructure
                 if(function_exists('getAuth')){
                     $model->created_user = isset(getAuth()->id) ? getAuth()->id : 0;
                 }
+            }
+            if(Schema::hasColumn(self::getTableName(),'sort') && (!isset($params['sort']) || !$params['sort'])){
+                #自动写入排序字段
+                $model->sort = self::getSort();
             }
             if(!$model->save()){
                 throw new Exception('网络异常,入库失败');
