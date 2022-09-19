@@ -73,4 +73,61 @@ class BaseiModelTool
             return false;
         }
     }
+
+    /**
+     * 作用方法:获取时间段
+     * @Author Pearton <pearton@126.com>
+     * @Time 2022/9/19 10:26
+     * @param string $dateDesc
+     * @param string $dateHorizon
+     * @return array
+     */
+    public function getDateRange(string $dateDesc,string $dateHorizon): array
+    {
+        $date1 = false;
+        $date2 = false;
+        $time = time();
+        switch ($dateDesc){
+            case 'date_day':        //今天
+                $date1 = date('Y-m-d H:i:s',strtotime(date('Y-m-d')));
+                $date2 = date('Y-m-d').' 23:59:59';
+                break;
+            case 'date_yesterday':  //昨天
+                $date1 = date('Y-m-d H:i:s',strtotime('-1 day',strtotime(date('Y-m-d'))));
+                $date2 = date('Y-m-d',strtotime($date1)).' 23:59:59';
+                break;
+            case 'date_week':       //本周
+                $date1 = date("Y-m-d H:i:s",mktime(0, 0 , 0,date("m", $time),date("d", $time)-date("w", $time)+1,date("Y", $time)));
+                $date2 = date("Y-m-d H:i:s",mktime(23,59,59,date("m", $time),date("d", $time)-date("w", $time)+7,date("Y", $time)));
+                break;
+            case 'date_month':      //本月
+                $date1 = date('Y-m-d H:i:s',mktime(0,0,0,date("m",$time),1,date("Y",$time)));
+                $date2 = date('Y-m-d H:i:s',mktime(23,59,59,date("m",$time),date("t",strtotime($date1)),date("Y",$time)));
+                break;
+            case 'date_lastmonth':  //上月
+                $date1 = date('Y-m-d H:i:s',mktime(0,0,0,date("m",strtotime('-1 month',$time)),1,date("Y",$time)));
+                $date2 = date('Y-m-d H:i:s',mktime(23,59,59,date("m",strtotime('-1 month',$time)),date("t",strtotime($date1)),date("Y",$time)));
+                break;
+            case 'date_year':       //今年
+                $date1 = date('Y-m-d H:i:s',mktime(0,0,0,1,1,date("Y",$time)));
+                $date2 = date('Y-m-d H:i:s',mktime(23,59,59,12,31,date("Y",$time)));
+                break;
+            case 'date_other':      //自定义时间
+                if(!isset($dateHorizon) || !$dateHorizon){
+                    $date1 = false;
+                    $date2 = false;
+                }else{
+                    $date = explode(' - ',$dateHorizon);
+                    if(!$date){
+                        $date1 = false;
+                        $date2 = false;
+                    }else{
+                        $date1 = $date[0];
+                        $date2 = $date[1];
+                    }
+                }
+        }
+
+        return compact('date1','date2');
+    }
 }

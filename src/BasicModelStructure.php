@@ -225,44 +225,16 @@ trait BasicModelStructure
     public function searchWhereCustomJoint(array $params,string $field = 'created_at'):array
     {
         $where_custom = [];
-        $date1 = false;
-        $date2 = false;
+
         if(isset($params['fast_data']) && $params['fast_data']){
-            $time = time();
-            switch ($params['fast_data']){
-                case 'date_day':    //只看今天的
-                    $date1 = date('Y-m-d H:i:s',strtotime(date('Y-m-d')));
-                    $date2 = date('Y-m-d H:i:s',strtotime('+1 day'));
-                    break;
-                case 'date_week':   //本周
-                    $date1 = date("Y-m-d H:i:s",mktime(0, 0 , 0,date("m", $time),date("d", $time)-date("w", $time)+1,date("Y", $time)));
-                    $date2 = date("Y-m-d H:i:s",mktime(23,59,59,date("m", $time),date("d", $time)-date("w", $time)+7,date("Y", $time)));
-                    break;
-                case 'date_month':  //本月
-                    $date1 = date('Y-m-d H:i:s',mktime(0,0,0,date("m",$time),1,date("Y",$time)));
-                    $date2 = date('Y-m-d H:i:s',mktime(23,59,59,date("m",$time),date("t",strtotime($date1)),date("Y",$time)));
-                    break;
-                case 'date_other':  //自定义时间
-                    if(!isset($params['time_horizon']) || !$params['time_horizon']){
-                        $date1 = false;
-                        $date2 = false;
-                    }else{
-                        $date = explode(' - ',$params['time_horizon']);
-                        if(!$date){
-                            $date1 = false;
-                            $date2 = false;
-                        }else{
-                            $date1 = $date[0];
-                            $date2 = $date[1];
-                        }
-                    }
-            }
-            if($date1 && $date2){
+            $date = BaseiModelTool::getInstance()->getDateRange($params['fast_data'],$params['time_horizon'] ?? '');
+
+            if($date['date1'] && $date['date2']){
                 if(!Schema::hasColumn(self::getTableName(),$field)){
                     throw new Exception("当前Model不存在字段{$field}");
                 }
-                array_push($where_custom,[$field,'>=',$date1]);
-                array_push($where_custom,[$field,'<=',$date2]);
+                array_push($where_custom,[$field,'>=',$date['date1']]);
+                array_push($where_custom,[$field,'<=',$date['date2']]);
             }
         }
         return $where_custom;
