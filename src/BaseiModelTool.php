@@ -52,6 +52,8 @@ class BaseiModelTool
                 throw new Exception("当前Model不存在状态字段{$referenceColumn}");
             }
             unset($updateColumn[0]);
+            //表前缀处理(laravel内 model、DB操作 都不需要主动带上表前缀 但执行原生 需要完整表名)
+            $tableName = DB::getTablePrefix() . $tableName;
             // 拼接sql语句
             $updateSql = "UPDATE " . $tableName . " SET ";
             foreach ($updateColumn as $uColumn) {

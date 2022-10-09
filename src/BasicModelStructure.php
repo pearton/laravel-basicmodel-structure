@@ -98,11 +98,21 @@ trait BasicModelStructure
     }
 
     /**
-     * 作用方法:model表名获取
+     * 作用方法:model表名获取_不带表前缀
      * Created by Lxd.
      * @return mixed
      */
     public static function getTableName()
+    {
+        return (new self())->getTable();
+    }
+
+    /**
+     * 作用方法:model表名获取_带表前缀
+     * Created by Lxd.
+     * @return mixed
+     */
+    public static function getPrefixTableName()
     {
         return DB::getConfig('prefix').(new self())->getTable();
     }
