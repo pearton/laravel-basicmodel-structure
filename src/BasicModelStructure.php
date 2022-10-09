@@ -104,7 +104,7 @@ trait BasicModelStructure
      */
     public static function getTableName()
     {
-        return (new self())->getTable();
+        return DB::getConfig('prefix').(new self())->getTable();
     }
 
     /**
