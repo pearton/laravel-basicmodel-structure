@@ -257,7 +257,7 @@ trait BasicModelStructure
      * @param array $ormSearch
      * @return mixed
      */
-    private static function buildOrmRelation($modelQuery,$ormSearch = [])
+    public static function buildOrmRelation($modelQuery,$ormSearch = [])
     {
         //with关联关系查询
         if(isset($ormSearch['with'])){
@@ -306,7 +306,7 @@ trait BasicModelStructure
      * @param $params
      * @return mixed
      */
-    private static function buildQuery($modelQuery,$params)
+    public static function buildQuery($modelQuery,$params)
     {
         foreach ($params as $k=>$v){
             $fundKey = (new self())->_getFieldRuleKey($k);
