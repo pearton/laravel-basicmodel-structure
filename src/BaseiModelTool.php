@@ -35,9 +35,10 @@ class BaseiModelTool
      * @Time 2022/9/2 10:04
      * @param string $tableName
      * @param array $multipleData
+     * @param null $connection
      * @return bool
      */
-    public function updateAllBatchByTable(string $tableName,array $multipleData):bool
+    public function updateAllBatchByTable(string $tableName,array $multipleData,$connection = null):bool
     {
         try {
             if (empty($multipleData)) {
@@ -48,7 +49,7 @@ class BaseiModelTool
             $updateColumn = array_keys($firstRow);
             // 默认以id为条件更新，如果没有ID则以第一个字段为条件
             $referenceColumn = isset($firstRow['id']) ? 'id' : current($updateColumn);
-            if(!Schema::hasColumn($tableName,$referenceColumn)){
+            if(!Schema::connection($connection)->hasColumn($tableName,$referenceColumn)){
                 throw new Exception("当前Model不存在状态字段{$referenceColumn}");
             }
             unset($updateColumn[0]);

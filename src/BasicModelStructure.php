@@ -38,7 +38,7 @@ trait BasicModelStructure
         $_that = new self();
         if($_that->frontDndStatus && request()->segment(1) == 'api'){
             $statusKey = property_exists($_that,'statusKey')  ? $_that->statusKey : 'status';
-            if(!Schema::hasColumn(self::getTableName(),$statusKey)){
+            if(!Schema::connection($_that->connection)->hasColumn(self::getTableName(),$statusKey)){
                 throw new Exception("当前Model不存在状态字段{$statusKey},请务开启frontDndStatus为true");
             }
             //开启前端status字段显示作用域(前台(api端)仅允许检索出状态(status)为正常的数据)
@@ -82,7 +82,7 @@ trait BasicModelStructure
      */
     public function User()
     {
-        if(Schema::hasColumn(self::getTableName(),'created_user')){
+        if(Schema::connection($this->connection)->hasColumn(self::getTableName(),'created_user')){
             return $this->belongsTo('App\Models\Frame\User','created_user','id');
         }
         return false;
@@ -149,7 +149,7 @@ trait BasicModelStructure
     public function findOne(int $primaryKey,$field = false)
     {
         if($field){
-            if(!Schema::hasColumn(self::getTableName(),$field)){
+            if(!Schema::connection($this->connection)->hasColumn(self::getTableName(),$field)){
                 throw new Exception("当前数据表未包含字段{$field}");
             }
             return $this->find($primaryKey)->$field ?? false;
@@ -240,7 +240,7 @@ trait BasicModelStructure
             $date = BaseiModelTool::getInstance()->getDateRange($params['fast_data'],$params['time_horizon'] ?? '');
 
             if($date['date1'] && $date['date2']){
-                if(!Schema::hasColumn(self::getTableName(),$field)){
+                if(!Schema::connection($this->connection)->hasColumn(self::getTableName(),$field)){
                     throw new Exception("当前Model不存在字段{$field}");
                 }
                 array_push($where_custom,[$field,'>=',$date['date1']]);
@@ -308,12 +308,13 @@ trait BasicModelStructure
      */
     public static function buildQuery($modelQuery,$params)
     {
+        $_that = new self();
         foreach ($params as $k=>$v){
             $fundKey = (new self())->_getFieldRuleKey($k);
             if((!$fundKey || !$v) && $k !== 'lishu'){
                 if(!$fundKey){
                     //没找到声明,默认eq查询|值=0也将用于条件检索 所以注意 如无必要,请不要定义value=0的枚举值
-                    if(Schema::hasColumn(self::getTableName(),$k) && ($v || $v == "0")){
+                    if(Schema::connection($_that->connection)->hasColumn(self::getTableName(),$k) && ($v || $v == "0")){
                         $modelQuery = $modelQuery->where($k,$v);
                     }
                 }
@@ -353,9 +354,9 @@ trait BasicModelStructure
                 $modelQuery = $modelQuery->orderBy($v[0],$v[1]);
             }
         }else{
-            if(Schema::hasColumn(self::getTableName(),'sort')){
+            if(Schema::connection($_that->connection)->hasColumn(self::getTableName(),'sort')){
                 $modelQuery = $modelQuery->orderBy('sort','desc')->orderBy('id','desc');
-            }elseif(Schema::hasColumn(self::getTableName(),'id')){
+            }elseif(Schema::connection($_that->connection)->hasColumn(self::getTableName(),'id')){
                 $modelQuery = $modelQuery->orderBy('id','desc');
             }
         }
@@ -406,7 +407,7 @@ trait BasicModelStructure
                 return ['code'=>404,'msg'=>'数据已被删除'];
             }
             $statusKey = property_exists($this,'statusKey')  ? $this->statusKey : 'status';
-            if(!Schema::hasColumn(self::getTableName(),$statusKey)){
+            if(!Schema::connection($this->connection)->hasColumn(self::getTableName(),$statusKey)){
                 throw new Exception("当前Model不存在状态字段{$statusKey}");
             }
             $className = __CLASS__;
@@ -482,18 +483,18 @@ trait BasicModelStructure
                 if($v && !is_string($v) && !is_int($v) && !is_float($v)){
                     throw new Exception("{$k}字段期望属性错误,非string类型");
                 }
-                if(Schema::hasColumn(self::getTableName(),$k)){
+                if(Schema::connection($this->connection)->hasColumn(self::getTableName(),$k)){
                     $model->$k = $v;
                 }
             }
-            if(Schema::hasColumn(self::getTableName(),'created_user')){
+            if(Schema::connection($this->connection)->hasColumn(self::getTableName(),'created_user')){
                 #该处如需要记录后台创建人,则需要开发者根据自己业务进行修改
                 #自行确定使用的鉴权方式,以获得后台操作人ID
                 if(function_exists('getAuth')){
                     $model->created_user = isset(getAuth()->id) ? getAuth()->id : 0;
                 }
             }
-            if(Schema::hasColumn(self::getTableName(),'sort') && (!isset($params['sort']) || !$params['sort'])){
+            if(Schema::connection($this->connection)->hasColumn(self::getTableName(),'sort') && (!isset($params['sort']) || !$params['sort'])){
                 #自动写入排序字段
                 $model->sort = self::getSort();
             }
@@ -534,7 +535,7 @@ trait BasicModelStructure
                 if($v && !is_string($v) && !is_int($v) && !is_float($v)){
                     throw new Exception("{$k}字段期望属性错误,非string类型");
                 }
-                if(Schema::hasColumn(self::getTableName(),$k)){
+                if(Schema::connection($this->connection)->hasColumn(self::getTableName(),$k)){
                     $info->$k = $v;
                 }
             }
@@ -566,7 +567,7 @@ trait BasicModelStructure
                 throw new Exception('未传递表主键');
             }
 
-            if(!Schema::hasColumn(self::getTableName(),$params['field'])){
+            if(!Schema::connection($this->connection)->hasColumn(self::getTableName(),$params['field'])){
                 throw new Exception("当前Model不存在排序字段{$params['field']}");
             }
             $rules = [
@@ -618,7 +619,7 @@ trait BasicModelStructure
             if(!isset($params[$idKey])){
                 throw new Exception('未传递表主键');
             }
-            if(!Schema::hasColumn(self::getTableName(),$params['field'])){
+            if(!Schema::connection($this->connection)->hasColumn(self::getTableName(),$params['field'])){
                 throw new Exception("当前Model不存在字段{$params['field']}");
             }
 
@@ -628,7 +629,7 @@ trait BasicModelStructure
                 'is_unique' => 'required',
                 'can_null' => 'required'
             ];
-            if(!Schema::hasColumn($params['table'],'deleted_at')){
+            if(!Schema::connection($this->connection)->hasColumn($params['table'],'deleted_at')){
                 $rules[$idKey] = ['required','integer',Rule::exists($params['table'],$idKey)];
             }else{
                 $rules[$idKey] = ['required','integer',Rule::exists($params['table'],$idKey)->where(function ($query){
