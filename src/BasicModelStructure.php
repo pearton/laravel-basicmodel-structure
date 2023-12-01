@@ -487,7 +487,7 @@ trait BasicModelStructure
                     $model->$k = $v;
                 }
             }
-            if(Schema::connection($this->connection)->hasColumn(self::getTableName(),'created_user')){
+            if(!isset($params['created_user']) && Schema::connection($this->connection)->hasColumn(self::getTableName(),'created_user')){
                 #该处如需要记录后台创建人,则需要开发者根据自己业务进行修改
                 #自行确定使用的鉴权方式,以获得后台操作人ID
                 if(function_exists('getAuth')){
