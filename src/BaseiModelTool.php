@@ -103,6 +103,10 @@ class BaseiModelTool
                 $date1 = date("Y-m-d H:i:s",mktime(0, 0 , 0,date("m", $time),date("d", $time)-date("w", $time)+1,date("Y", $time)));
                 $date2 = date("Y-m-d H:i:s",mktime(23,59,59,date("m", $time),date("d", $time)-date("w", $time)+7,date("Y", $time)));
                 break;
+            case 'date_lastweek':   //上周
+                $date1 = date("Y-m-d H:i:s",mktime(0, 0 , 0,date("m"),date("d")-date("N")+1-7,date("Y")));
+                $date2 = date("Y-m-d H:i:s",mktime(23,59,59,date("m"),date("d")-date("N")+7-7,date("Y")));
+                break;
             case 'date_month':      //本月
                 $date1 = date('Y-m-d H:i:s',mktime(0,0,0,date("m",$time),1,date("Y",$time)));
                 $date2 = date('Y-m-d H:i:s',mktime(23,59,59,date("m",$time),date("t",strtotime($date1)),date("Y",$time)));
